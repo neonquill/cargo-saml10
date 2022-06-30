@@ -1,5 +1,7 @@
 use clap::Parser;
+use probe_rs_cli_util::build_artifact;
 use probe_rs_cli_util::common_options::CargoOptions;
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[clap(version, about)]
@@ -16,4 +18,12 @@ fn main() {
 
     println!("Hello, {}!", args.name);
     println!("Cargo: {:?}", args.cargo_options);
+
+    let work_dir = PathBuf::from(".");
+    let path =
+        build_artifact(&work_dir, &args.cargo_options.to_cargo_options())
+            .unwrap()
+            .path()
+            .to_owned();
+    println!("Path: {:?}", path);
 }
