@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0"
 clap = { version = "3.2.7", features = ["derive"] }
 probe-rs-cli-util = { version = "0.12.0", git = "https://github.com/probe-rs/probe-rs" }
 

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::Parser;
 use probe_rs_cli_util::build_artifact;
 use probe_rs_cli_util::common_options::CargoOptions;
@@ -10,14 +11,15 @@ struct Args {
     cargo_options: CargoOptions,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let args = Args::parse();
 
     let work_dir = PathBuf::from(".");
     let path =
-        build_artifact(&work_dir, &args.cargo_options.to_cargo_options())
-            .unwrap()
+        build_artifact(&work_dir, &args.cargo_options.to_cargo_options())?
             .path()
             .to_owned();
     println!("Path: {:?}", path);
+
+    Ok(())
 }
