@@ -5,3 +5,8 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "3.2.7", features = ["derive"] }
+probe-rs-cli-util = { version = "0.12.0", git = "https://github.com/probe-rs/probe-rs" }
+
+[patch."https://github.com/probe-rs/probe-rs"]
+probe-rs = { path = "../../tools/probe-rs/probe-rs" }
+probe-rs-cli-util = { path = "../../tools/probe-rs/probe-rs-cli-util" }
