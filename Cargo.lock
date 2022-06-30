@@ -710,6 +710,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "probe-rs",
  "probe-rs-cli-util",
 ]
 

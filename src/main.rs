@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use probe_rs::Probe;
 use probe_rs_cli_util::build_artifact;
 use probe_rs_cli_util::common_options::CargoOptions;
 use std::path::PathBuf;
@@ -15,11 +16,13 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     let work_dir = PathBuf::from(".");
-    let path =
+    let _path =
         build_artifact(&work_dir, &args.cargo_options.to_cargo_options())?
             .path()
             .to_owned();
-    println!("Path: {:?}", path);
+
+    let probes = Probe::list_all();
+    let _probe = probes[0].open()?;
 
     Ok(())
 }
