@@ -1,5 +1,5 @@
 [package]
-name = "saml10_programmer"
+name = "cargo-saml10"
 version = "0.1.0"
 edition = "2021"
 

@@ -113,6 +113,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-saml10"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "log",
+ "object 0.29.0",
+ "probe-rs",
+ "probe-rs-cli-util",
+ "simplelog",
+]
+
+[[package]]
 name = "cargo_metadata"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -747,19 +760,6 @@ name = "ryu"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3f6f92acf49d1b98f7a81226834412ada05458b7364277387724a237f062695"
-
-[[package]]
-name = "saml10_programmer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "log",
- "object 0.29.0",
- "probe-rs",
- "probe-rs-cli-util",
- "simplelog",
-]
 
 [[package]]
 name = "scroll"
