@@ -267,6 +267,62 @@ impl Atsaml10 {
                     addr += Atsaml10::ROW_SIZE;
                 }
             }
+        }
+
+        let probe = interface.close();
+
+        Ok(probe)
+    }
+
+    pub fn verify(&self, probe: Probe, data: &FlashData) -> Result<Probe> {
+        let mut interface =
+            probe.try_into_arm_interface().map_err(|(_, e)| e)?;
+
+        cpu_reset_extension!(interface);
+
+        let mut interface = interface.initialize_unspecified()?;
+
+        let port = ApAddress {
+            dp: DpAddress::Default,
+            ap: 0,
+        };
+
+        let default_memory_ap = MemoryAp::new(port);
+        {
+            let mut memory = interface.memory_interface(default_memory_ap)?;
+
+            self.exit_reset_extension(&mut memory)?;
+
+            log::warn!("XXXa9d");
+
+            // XXX Not sure I'm doing this right.
+            memory
+                .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_EXIT)?;
+
+            log::warn!("XXXaa");
+
+            // Poll for status update.
+            for _ in 0..20 {
+                let statusb =
+                    memory.read_word_8((Self::DSU_STATUSB_ADDR).into())?;
+                if (statusb & Self::BCCD1_BIT) != 0 {
+                    let status =
+                        memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
+                    if status != Self::SIG_BOOTOK {
+                        log::warn!(
+                            "Failed to exit to park!: status {:x}",
+                            status
+                        );
+                        // XXX Error!
+                    }
+                }
+                // No status update, wait for a while before trying again.
+                thread::sleep(Duration::from_millis(50));
+            }
+
+            log::warn!("Exit to park succeeded!");
+
+            let row_size: usize = Self::ROW_SIZE as usize;
 
             // Verify the data.
             log::warn!("Verifying");

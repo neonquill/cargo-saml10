@@ -46,6 +46,8 @@ fn main() -> Result<()> {
 
     let probe = saml10.program(probe, &data)?;
 
+    let probe = saml10.verify(probe, &data)?;
+
     saml10.reset(probe)?;
 
     Ok(())
