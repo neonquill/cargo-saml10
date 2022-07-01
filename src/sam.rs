@@ -1,3 +1,4 @@
+use crate::elf::DataChunk;
 use anyhow::{anyhow, Result};
 use probe_rs::architecture::arm::{ap::MemoryAp, ApAddress, DpAddress, Pins};
 use probe_rs::{Memory, Probe};
@@ -50,7 +51,7 @@ impl Atsaml10 {
     // Enter Interactive Mode.
     const CMD_INIT: u32 = 0x444247_55;
     // Exit Interactive Mode.
-    const _CMD_EXIT: u32 = 0x444247_AA;
+    const CMD_EXIT: u32 = 0x444247_AA;
     // ChipErease for SAM L10.
     const CMD_CHIPERASE: u32 = 0x444247_E3;
     // Boot Interactive Mode Status (14.4.5.10).
@@ -60,6 +61,8 @@ impl Atsaml10 {
     const SIG_CMD_SUCCESS: u32 = 0xEC0000_21;
     // Valid command.
     const SIG_CMD_VALID: u32 = 0xEC0000_24;
+    // Boot ROM ok to exit.
+    const SIG_BOOTOK: u32 = 0xEC0000_39;
     const _NVMCTRL_STATUS_READY: u8 = 1 << 2;
 
     pub fn new() -> Self {
@@ -148,6 +151,66 @@ impl Atsaml10 {
             }
 
             log::warn!("XXXa9");
+        }
+
+        let probe = interface.close();
+
+        Ok(probe)
+    }
+
+    pub fn program(
+        &self,
+        probe: Probe,
+        _data: &Vec<DataChunk>,
+    ) -> Result<Probe> {
+        let mut interface =
+            probe.try_into_arm_interface().map_err(|(_, e)| e)?;
+
+        cpu_reset_extension!(interface);
+
+        let mut interface = interface.initialize_unspecified()?;
+
+        let port = ApAddress {
+            dp: DpAddress::Default,
+            ap: 0,
+        };
+
+        let default_memory_ap = MemoryAp::new(port);
+        {
+            let mut memory = interface.memory_interface(default_memory_ap)?;
+
+            self.exit_reset_extension(&mut memory)?;
+
+            log::warn!("XXXa9d");
+
+            // XXX Not sure I'm doing this right.
+            memory
+                .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_EXIT)?;
+
+            log::warn!("XXXaa");
+
+            // Poll for status update.
+            for _ in 0..20 {
+                let statusb =
+                    memory.read_word_8((Self::DSU_STATUSB_ADDR).into())?;
+                if (statusb & Self::BCCD1_BIT) != 0 {
+                    let status =
+                        memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
+                    if status != Self::SIG_BOOTOK {
+                        log::warn!(
+                            "Failed to exit to park!: status {:x}",
+                            status
+                        );
+                        // XXX Error!
+                    }
+                }
+                // No status update, wait for a while before trying again.
+                thread::sleep(Duration::from_millis(50));
+            }
+
+            log::warn!("Exit to park succeeded!");
+
+            // XXX Now need to program
         }
 
         let probe = interface.close();

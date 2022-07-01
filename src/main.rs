@@ -24,7 +24,7 @@ fn main() -> Result<()> {
             .path()
             .to_owned();
 
-    let _data = elf::extract_data(&path)?;
+    let data = elf::extract_data(&path)?;
 
     let saml10 = sam::Atsaml10::new();
 
@@ -34,7 +34,11 @@ fn main() -> Result<()> {
     // Attach without running any init routines.
     probe.attach_to_unspecified()?;
 
-    saml10.erase(probe)?;
+    let probe = saml10.erase(probe)?;
+
+    saml10.program(probe, &data)?;
+
+    // XXX Need to reset.
 
     Ok(())
 }
