@@ -336,6 +336,7 @@ impl Atsaml10 {
                 let mut addr = chunk.address;
 
                 for row in data.chunks(row_size) {
+                    log::warn!("Reading {}", addr);
                     memory.read_8(addr.into(), &mut read_data)?;
                     for ((i, expected), actual) in
                         row.iter().enumerate().zip(read_data.iter())
@@ -351,11 +352,11 @@ impl Atsaml10 {
                             // XXX Find a way to error here.
                             break 'chunks;
                         }
-
-                        addr += Atsaml10::ROW_SIZE;
                     }
+                    addr += Atsaml10::ROW_SIZE;
                 }
             }
+            println!("Verify succeeded!");
         }
 
         let probe = interface.close();
