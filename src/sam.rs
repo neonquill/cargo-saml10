@@ -221,6 +221,7 @@ impl Atsaml10 {
             let row_size: usize = Self::ROW_SIZE as usize;
 
             // Actually do the flash.
+            log::warn!("Flashing!");
             for chunk in &data.chunks {
                 let data = &data.bin_data[chunk.segment_offset as usize..]
                     [..chunk.segment_filesize as usize];
@@ -268,6 +269,7 @@ impl Atsaml10 {
             }
 
             // Verify the data.
+            log::warn!("Verifying");
             let mut read_data = Vec::with_capacity(row_size);
             read_data.resize(row_size, 0xff);
 

@@ -18,6 +18,14 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
 
+    // XXX Make this be an argument.
+    simplelog::TermLogger::init(
+        simplelog::LevelFilter::Warn,
+        simplelog::Config::default(),
+        simplelog::TerminalMode::Mixed,
+        simplelog::ColorChoice::Auto,
+    )?;
+
     let work_dir = PathBuf::from(".");
     let path =
         build_artifact(&work_dir, &args.cargo_options.to_cargo_options())?
