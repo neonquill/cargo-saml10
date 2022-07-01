@@ -40,9 +40,11 @@ pub fn extract_data(path: &Path) -> Result<FlashData> {
         if segment_data.is_empty() || p_type != PT_LOAD {
             continue;
         }
-        println!(
+
+        log::info!(
             "Loadable Segment physical {:x}, virtual {:x}",
-            p_paddr, p_vaddr
+            p_paddr,
+            p_vaddr
         );
 
         let (segment_offset, segment_filesize) = segment.file_range(endian);
@@ -60,13 +62,13 @@ pub fn extract_data(path: &Path) -> Result<FlashData> {
             if sector.contains_range(
                 &(section_offset..section_offset + section_filesize),
             ) {
-                println!("Matching section: {:?}", section.name()?);
+                log::info!("Found matching section: {:?}", section.name()?);
                 found = true;
             }
         }
 
         if !found {
-            println!("No matching sections found!");
+            log::warn!("No matching sections found!");
             continue;
         }
 

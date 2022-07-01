@@ -35,6 +35,8 @@ fn main() -> Result<()> {
             .path()
             .to_owned();
 
+    println!("Programming {}", path.display());
+
     let data = elf::extract_data(&path)?;
 
     let saml10 = sam::Atsaml10::new();
@@ -45,11 +47,17 @@ fn main() -> Result<()> {
     // Attach without running any init routines.
     probe.attach_to_unspecified()?;
 
+    print!("Erasing");
     let probe = saml10.erase(probe)?;
+    println!("...Done");
 
+    print!("Flashing");
     let probe = saml10.program(probe, &data)?;
+    println!("Done");
 
+    print!("Verifying");
     let probe = saml10.verify(probe, &data)?;
+    println!("Done");
 
     saml10.reset(probe)?;
 

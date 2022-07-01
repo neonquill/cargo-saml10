@@ -85,8 +85,10 @@ impl Atsaml10 {
         let mut interface =
             probe.try_into_arm_interface().map_err(|(_, e)| e)?;
 
+        log::debug!("Entering reset extension.");
         cpu_reset_extension!(interface);
 
+        log::debug!("Initializing interface.");
         let mut interface = interface.initialize_unspecified()?;
 
         let port = ApAddress {
@@ -96,11 +98,14 @@ impl Atsaml10 {
 
         let default_memory_ap = MemoryAp::new(port);
         {
+            log::debug!("Getting memory interface.");
             let mut memory = interface.memory_interface(default_memory_ap)?;
 
+            log::debug!("Exiting reset extension.");
             self.exit_reset_extension(&mut memory)?;
 
             // Request Boot ROM Interactive mode entry (14.4.5.1.1).
+            log::debug!("Switching to boot ROM interactive mode.");
             memory
                 .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_INIT)?;
 
@@ -115,6 +120,7 @@ impl Atsaml10 {
             }
 
             // Issue the Chip Erase command (14.4.5.4.1).
+            log::debug!("Issuing Chip Erase command");
             memory.write_word_32(
                 (Self::DSU_BCC0_ADDR).into(),
                 Self::CMD_CHIPERASE,
@@ -123,7 +129,8 @@ impl Atsaml10 {
             // Check to see if the command was valid.
             let status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
             if status != Self::SIG_CMD_VALID {
-                log::warn!("XXX status wrong: {:x}", status);
+                log::error!("Chip Erase status wrong: {:x}", status);
+                // XXX Clean up this error.
                 return Err(anyhow!(
                     "Chip Erase failed due to invalid command"
                 ));
@@ -134,8 +141,7 @@ impl Atsaml10 {
             for i in 0..20 {
                 status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
                 if status != Self::SIG_CMD_VALID && status != 0 {
-                    // XXX Change this to trace.
-                    log::warn!("Received status update after {} cycles", i);
+                    log::trace!("Received status update after {} cycles", i);
                     break;
                 }
                 // No status update, wait for a while before trying again.
@@ -144,12 +150,11 @@ impl Atsaml10 {
 
             // Make sure we were successful.
             if status != Self::SIG_CMD_SUCCESS {
-                // XXX is warn the right message?
-                log::warn!("XXX Chip Erase failed!");
+                // XXX Should this just return an error?
+                log::error!("Chip Erase failed!");
                 // XXX reset to park?
             } else {
-                // XXX warn?
-                log::warn!("XXX Chip Erase succeeded");
+                log::debug!("Chip Erase succeeded");
             }
         }
 
@@ -162,8 +167,10 @@ impl Atsaml10 {
         let mut interface =
             probe.try_into_arm_interface().map_err(|(_, e)| e)?;
 
+        log::debug!("Entering reset extension.");
         cpu_reset_extension!(interface);
 
+        log::debug!("Initializing interface.");
         let mut interface = interface.initialize_unspecified()?;
 
         let port = ApAddress {
@@ -173,11 +180,14 @@ impl Atsaml10 {
 
         let default_memory_ap = MemoryAp::new(port);
         {
+            log::debug!("Getting memory interface.");
             let mut memory = interface.memory_interface(default_memory_ap)?;
 
+            log::debug!("Exiting reset extension.");
             self.exit_reset_extension(&mut memory)?;
 
-            // XXX Not sure I'm doing this right.
+            // Exit Boot ROM into park.
+            log::debug!("Exiting to boot ROM park mode.");
             memory
                 .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_EXIT)?;
 
@@ -200,12 +210,12 @@ impl Atsaml10 {
                 thread::sleep(Duration::from_millis(50));
             }
 
-            log::warn!("Exit to park succeeded!");
+            log::debug!("Exit to park succeeded.");
 
             let row_size: usize = Self::ROW_SIZE as usize;
 
             // Actually do the flash.
-            log::warn!("Flashing!");
+            log::debug!("Flashing.");
             for chunk in &data.chunks {
                 let data = &data.bin_data[chunk.segment_offset as usize..]
                     [..chunk.segment_filesize as usize];
@@ -249,6 +259,7 @@ impl Atsaml10 {
                     }
 
                     addr += Atsaml10::ROW_SIZE;
+                    print!(".");
                 }
             }
         }
@@ -262,8 +273,10 @@ impl Atsaml10 {
         let mut interface =
             probe.try_into_arm_interface().map_err(|(_, e)| e)?;
 
+        log::debug!("Entering reset extension.");
         cpu_reset_extension!(interface);
 
+        log::debug!("Initializing interface.");
         let mut interface = interface.initialize_unspecified()?;
 
         let port = ApAddress {
@@ -273,11 +286,14 @@ impl Atsaml10 {
 
         let default_memory_ap = MemoryAp::new(port);
         {
+            log::debug!("Getting memory interface.");
             let mut memory = interface.memory_interface(default_memory_ap)?;
 
+            log::debug!("Exiting reset extension.");
             self.exit_reset_extension(&mut memory)?;
 
-            // XXX Not sure I'm doing this right.
+            // Exit Boot ROM into park.
+            log::debug!("Exiting to boot ROM park mode.");
             memory
                 .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_EXIT)?;
 
@@ -300,12 +316,12 @@ impl Atsaml10 {
                 thread::sleep(Duration::from_millis(50));
             }
 
-            log::warn!("Exit to park succeeded!");
+            log::debug!("Exit to park succeeded.");
 
             let row_size: usize = Self::ROW_SIZE as usize;
 
             // Verify the data.
-            log::warn!("Verifying");
+            log::debug!("Verifying.");
             let mut read_data = Vec::with_capacity(row_size);
             read_data.resize(row_size, 0xff);
 
@@ -334,6 +350,7 @@ impl Atsaml10 {
                         }
                     }
                     addr += Atsaml10::ROW_SIZE;
+                    print!(".");
                 }
             }
             println!("Verify succeeded!");
