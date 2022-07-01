@@ -100,13 +100,9 @@ impl Atsaml10 {
 
             self.exit_reset_extension(&mut memory)?;
 
-            log::warn!("XXXa4");
-
             // Request Boot ROM Interactive mode entry (14.4.5.1.1).
             memory
                 .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_INIT)?;
-
-            log::warn!("XXXa5");
 
             // Check for SIG_COMM status in DSU.BCC1.
             let status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
@@ -117,8 +113,6 @@ impl Atsaml10 {
                     "Failed to enter Boot ROM interactive mode."
                 ));
             }
-
-            log::warn!("XXXa6");
 
             // Issue the Chip Erase command (14.4.5.4.1).
             memory.write_word_32(
@@ -135,8 +129,6 @@ impl Atsaml10 {
                 ));
             }
 
-            log::warn!("XXXa7");
-
             // Poll for status update.
             let mut status = 0;
             for i in 0..20 {
@@ -150,8 +142,6 @@ impl Atsaml10 {
                 thread::sleep(Duration::from_secs(1));
             }
 
-            log::warn!("XXXa8");
-
             // Make sure we were successful.
             if status != Self::SIG_CMD_SUCCESS {
                 // XXX is warn the right message?
@@ -161,8 +151,6 @@ impl Atsaml10 {
                 // XXX warn?
                 log::warn!("XXX Chip Erase succeeded");
             }
-
-            log::warn!("XXXa9");
         }
 
         let probe = interface.close();
@@ -189,13 +177,9 @@ impl Atsaml10 {
 
             self.exit_reset_extension(&mut memory)?;
 
-            log::warn!("XXXa9d");
-
             // XXX Not sure I'm doing this right.
             memory
                 .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_EXIT)?;
-
-            log::warn!("XXXaa");
 
             // Poll for status update.
             for _ in 0..20 {
@@ -293,13 +277,9 @@ impl Atsaml10 {
 
             self.exit_reset_extension(&mut memory)?;
 
-            log::warn!("XXXa9d");
-
             // XXX Not sure I'm doing this right.
             memory
                 .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_EXIT)?;
-
-            log::warn!("XXXaa");
 
             // Poll for status update.
             for _ in 0..20 {
@@ -398,19 +378,13 @@ impl Atsaml10 {
             return Err(anyhow!("CPU Reset Extension failed"));
         }
 
-        log::warn!("XXXa1");
-
         // Clear the CRSTEXT bit.
         memory
             .write_word_8((Self::DSU_STATUSA_ADDR).into(), Self::CRSTEXT_BIT)?;
 
-        log::warn!("XXXa2");
-
         // Wait 5ms for CPU to execute Boot ROM failure analysis and security
         // checks.
         thread::sleep(Duration::from_millis(5));
-
-        log::warn!("XXXa3");
 
         // Check to see if there were any errors.
         let statusb = memory.read_word_8((Self::DSU_STATUSB_ADDR).into())?;
