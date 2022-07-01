@@ -66,7 +66,6 @@ impl Atsaml10 {
         Atsaml10(())
     }
 
-    // XXX Unimplemented for now.
     pub fn erase(&self, probe: Probe) -> Result<Probe> {
         let mut interface =
             probe.try_into_arm_interface().map_err(|(_, e)| e)?;
@@ -85,7 +84,72 @@ impl Atsaml10 {
             let mut memory = interface.memory_interface(default_memory_ap)?;
 
             self.exit_reset_extension(&mut memory)?;
+
+            log::warn!("XXXa4");
+
+            // Request Boot ROM Interactive mode entry (14.4.5.1.1).
+            memory
+                .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_INIT)?;
+
+            log::warn!("XXXa5");
+
+            // Check for SIG_COMM status in DSU.BCC1.
+            let status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
+            // Possibly I need to wait for the bit to be set?
+            if status != Self::SIG_COMM {
+                log::warn!("XXX status wrong: {:x}", status);
+                return Err(anyhow!(
+                    "Failed to enter Boot ROM interactive mode."
+                ));
+            }
+
+            log::warn!("XXXa6");
+
+            // Issue the Chip Erase command (14.4.5.4.1).
+            memory.write_word_32(
+                (Self::DSU_BCC0_ADDR).into(),
+                Self::CMD_CHIPERASE,
+            )?;
+
+            // Check to see if the command was valid.
+            let status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
+            if status != Self::SIG_CMD_VALID {
+                log::warn!("XXX status wrong: {:x}", status);
+                return Err(anyhow!(
+                    "Chip Erase failed due to invalid command"
+                ));
+            }
+
+            log::warn!("XXXa7");
+
+            // Poll for status update.
+            let mut status = 0;
+            for i in 0..20 {
+                status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
+                if status != Self::SIG_CMD_VALID && status != 0 {
+                    // XXX Change this to trace.
+                    log::warn!("Received status update after {} cycles", i);
+                    break;
+                }
+                // No status update, wait for a while before trying again.
+                thread::sleep(Duration::from_secs(1));
+            }
+
+            log::warn!("XXXa8");
+
+            // Make sure we were successful.
+            if status != Self::SIG_CMD_SUCCESS {
+                // XXX is warn the right message?
+                log::warn!("XXX Chip Erase failed!");
+                // XXX reset to park?
+            } else {
+                // XXX warn?
+                log::warn!("XXX Chip Erase succeeded");
+            }
+
+            log::warn!("XXXa9");
         }
+
         let probe = interface.close();
 
         Ok(probe)
@@ -121,65 +185,6 @@ impl Atsaml10 {
             log::warn!("Boot discovered errors, continuing: XXX");
             // XXX Go read the error code and show to the user.
         }
-
-        // XXX Still need to actually run the erase command.
-
-        log::warn!("XXXa4");
-
-        // Request Boot ROM Interactive mode entry (14.4.5.1.1).
-        memory.write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_INIT)?;
-
-        log::warn!("XXXa5");
-
-        // Check for SIG_COMM status in DSU.BCC1.
-        let status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
-        // Possibly I need to wait for the bit to be set?
-        if status != Self::SIG_COMM {
-            log::warn!("XXX status wrong: {:x}", status);
-            return Err(anyhow!("Failed to enter Boot ROM interactive mode."));
-        }
-
-        log::warn!("XXXa6");
-
-        // Issue the Chip Erase command (14.4.5.4.1).
-        memory
-            .write_word_32((Self::DSU_BCC0_ADDR).into(), Self::CMD_CHIPERASE)?;
-
-        // Check to see if the command was valid.
-        let status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
-        if status != Self::SIG_CMD_VALID {
-            log::warn!("XXX status wrong: {:x}", status);
-            return Err(anyhow!("Chip Erase failed due to invalid command"));
-        }
-
-        log::warn!("XXXa7");
-
-        // Poll for status update.
-        let mut status = 0;
-        for i in 0..20 {
-            status = memory.read_word_32((Self::DSU_BCC1_ADDR).into())?;
-            if status != Self::SIG_CMD_VALID && status != 0 {
-                // XXX Change this to trace.
-                log::warn!("Received status update after {} cycles", i);
-                break;
-            }
-            // No status update, wait for a while before trying again.
-            thread::sleep(Duration::from_secs(1));
-        }
-
-        log::warn!("XXXa8");
-
-        // Make sure we were successful.
-        if status != Self::SIG_CMD_SUCCESS {
-            // XXX is warn the right message?
-            log::warn!("XXX Chip Erase failed!");
-            // XXX reset to park?
-        } else {
-            // XXX warn?
-            log::warn!("XXX Chip Erase succeeded");
-        }
-
-        log::warn!("XXXa9");
 
         Ok(())
     }
