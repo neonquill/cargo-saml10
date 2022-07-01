@@ -11,6 +11,10 @@ mod sam;
 #[derive(Parser, Debug)]
 #[clap(version, about)]
 struct Args {
+    #[clap(short, long, value_parser,
+           default_value_t = simplelog::LevelFilter::Warn)]
+    log: simplelog::LevelFilter,
+
     #[clap(flatten)]
     cargo_options: CargoOptions,
 }
@@ -18,9 +22,8 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    // XXX Make this be an argument.
     simplelog::TermLogger::init(
-        simplelog::LevelFilter::Warn,
+        args.log,
         simplelog::Config::default(),
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
