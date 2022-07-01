@@ -305,6 +305,30 @@ impl Atsaml10 {
         Ok(probe)
     }
 
+    pub fn reset(&self, probe: Probe) -> Result<()> {
+        let mut interface =
+            probe.try_into_arm_interface().map_err(|(_, e)| e)?;
+
+        let mut pin_out = Pins(0);
+        let mut pin_mask = Pins(0);
+
+        // Make sure the SWCLK pin is high so we don't enter cold plug.
+
+        // Enter reset for 2 ms.
+        pin_out.set_nreset(false);
+        pin_out.set_swclk_tck(true);
+        pin_mask.set_nreset(true);
+        pin_mask.set_swclk_tck(true);
+        interface.swj_pins(pin_out.0 as u32, pin_mask.0 as u32, 0)?;
+        thread::sleep(Duration::from_millis(2));
+
+        // Clear reset.
+        pin_out.set_nreset(true);
+        interface.swj_pins(pin_out.0 as u32, pin_mask.0 as u32, 0)?;
+
+        Ok(())
+    }
+
     fn exit_reset_extension(&self, memory: &mut Memory) -> Result<()> {
         // Make sure the CRSTEXT bit is set to indicate we're in the
         // reset extension phase.

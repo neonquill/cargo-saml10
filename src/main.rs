@@ -36,9 +36,9 @@ fn main() -> Result<()> {
 
     let probe = saml10.erase(probe)?;
 
-    saml10.program(probe, &data)?;
+    let probe = saml10.program(probe, &data)?;
 
-    // XXX Need to reset.
+    saml10.reset(probe)?;
 
     Ok(())
 }
