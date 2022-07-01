@@ -26,10 +26,15 @@ fn main() -> Result<()> {
 
     let _data = elf::extract_data(&path)?;
 
-    let probes = Probe::list_all();
-    let _probe = probes[0].open()?;
+    let saml10 = sam::Atsaml10::new();
 
-    let _saml10 = sam::Atsaml10::new();
+    let probes = Probe::list_all();
+    let mut probe = probes[0].open()?;
+
+    // Attach without running any init routines.
+    probe.attach_to_unspecified()?;
+
+    saml10.erase(probe)?;
 
     Ok(())
 }
