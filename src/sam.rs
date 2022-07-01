@@ -89,34 +89,34 @@ impl Atsaml10 {
         let statusa = memory.read_word_8((Self::DSU_STATUSA_ADDR).into())?;
         if (statusa & Self::CRSTEXT_BIT) == 0 {
             // XXX Better warning message?
-            // XXX log::warn!("Reset extension failed, need `--connect-under-reset`?");
+            log::warn!("Reset extension failed, need `--connect-under-reset`?");
             return Err(anyhow!("CPU Reset Extension failed"));
         }
 
-        // XXX log::warn!("XXXa1");
+        log::warn!("XXXa1");
 
         // Clear the CRSTEXT bit.
         memory
             .write_word_8((Self::DSU_STATUSA_ADDR).into(), Self::CRSTEXT_BIT)?;
 
-        // XXX log::warn!("XXXa2");
+        log::warn!("XXXa2");
 
         // Wait 5ms for CPU to execute Boot ROM failure analysis and security
         // checks.
         thread::sleep(Duration::from_millis(5));
 
-        // XXX log::warn!("XXXa3");
+        log::warn!("XXXa3");
 
         // Check to see if there were any errors.
         let statusb = memory.read_word_8((Self::DSU_STATUSB_ADDR).into())?;
         if (statusb & Self::BCCD1_BIT) != 0 {
-            // XXX log::warn!("Boot discovered errors, continuing: XXX");
+            log::warn!("Boot discovered errors, continuing: XXX");
             // XXX Go read the error code and show to the user.
         }
 
         // XXX Still need to actually run the erase command.
 
-        // XXX log::warn!("XXXa4");
+        log::warn!("XXXa4");
 
         Ok(())
     }

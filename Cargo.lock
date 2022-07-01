@@ -754,9 +754,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "log",
  "object 0.29.0",
  "probe-rs",
  "probe-rs-cli-util",
+ "simplelog",
 ]
 
 [[package]]
