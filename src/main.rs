@@ -6,6 +6,7 @@ use probe_rs_cli_util::common_options::CargoOptions;
 use std::path::PathBuf;
 
 mod elf;
+mod sam;
 
 #[derive(Parser, Debug)]
 #[clap(version, about)]
@@ -27,6 +28,8 @@ fn main() -> Result<()> {
 
     let probes = Probe::list_all();
     let _probe = probes[0].open()?;
+
+    let _saml10 = sam::Atsaml10::new();
 
     Ok(())
 }
