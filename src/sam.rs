@@ -266,6 +266,38 @@ impl Atsaml10 {
                     addr += Atsaml10::ROW_SIZE;
                 }
             }
+
+            // Verify the data.
+            let mut read_data = Vec::with_capacity(row_size);
+            read_data.resize(row_size, 0xff);
+
+            'chunks: for chunk in &data.chunks {
+                let data = &data.bin_data[chunk.segment_offset as usize..]
+                    [..chunk.segment_filesize as usize];
+
+                let mut addr = chunk.address;
+
+                for row in data.chunks(row_size) {
+                    memory.read_8(addr.into(), &mut read_data)?;
+                    for ((i, expected), actual) in
+                        row.iter().enumerate().zip(read_data.iter())
+                    {
+                        if expected != actual {
+                            println!(
+                                "Values at address {:x} don't match \
+                                 ({:x} != {:x}",
+                                addr as usize + i,
+                                actual,
+                                expected
+                            );
+                            // XXX Find a way to error here.
+                            break 'chunks;
+                        }
+
+                        addr += Atsaml10::ROW_SIZE;
+                    }
+                }
+            }
         }
 
         let probe = interface.close();
