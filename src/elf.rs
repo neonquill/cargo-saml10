@@ -12,7 +12,12 @@ pub struct DataChunk {
     pub segment_filesize: u64,
 }
 
-pub fn extract_data(path: &Path) -> Result<Vec<DataChunk>> {
+pub struct FlashData {
+    pub bin_data: Vec<u8>,
+    pub chunks: Vec<DataChunk>,
+}
+
+pub fn extract_data(path: &Path) -> Result<FlashData> {
     // Pull the raw bytes from the elf file.
     let bin_data = std::fs::read(path)?;
     let obj_file =
@@ -96,5 +101,8 @@ pub fn extract_data(path: &Path) -> Result<Vec<DataChunk>> {
         }
     }
 
-    Ok(flash_data)
+    Ok(FlashData {
+        bin_data,
+        chunks: flash_data,
+    })
 }

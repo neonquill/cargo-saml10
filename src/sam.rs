@@ -1,4 +1,4 @@
-use crate::elf::DataChunk;
+use crate::elf::FlashData;
 use anyhow::{anyhow, Result};
 use probe_rs::architecture::arm::{ap::MemoryAp, ApAddress, DpAddress, Pins};
 use probe_rs::{Memory, Probe};
@@ -44,6 +44,11 @@ impl Atsaml10 {
     const DSU_STATUSB_ADDR: u32 = Self::DSU_ADDR + 0x2;
     const DSU_BCC0_ADDR: u32 = Self::DSU_ADDR + 0x20;
     const DSU_BCC1_ADDR: u32 = Self::DSU_ADDR + 0x24;
+    const NVMCTRL_ADDR: u32 = 0x41004000;
+    const NVMCTRL_CTRLA_ADDR: u32 = Self::NVMCTRL_ADDR + 0x00;
+    const NVMCTRL_CTRLC_ADDR: u32 = Self::NVMCTRL_ADDR + 0x08;
+    const NVMCTRL_STATUS_ADDR: u32 = Self::NVMCTRL_ADDR + 0x18;
+    const NVMCTRL_ADDR_ADDR: u32 = Self::NVMCTRL_ADDR + 0x1C;
     // XXX Handle registers better.
     const CRSTEXT_BIT: u8 = 1 << 1;
     const BCCD1_BIT: u8 = 1 << 7;
@@ -63,7 +68,14 @@ impl Atsaml10 {
     const SIG_CMD_VALID: u32 = 0xEC0000_24;
     // Boot ROM ok to exit.
     const SIG_BOOTOK: u32 = 0xEC0000_39;
-    const _NVMCTRL_STATUS_READY: u8 = 1 << 2;
+    // Flash row size.
+    const ROW_SIZE: u32 = 256;
+    // Erase row command.
+    const NVMCTRL_CTRLA_ER_CMD: u16 = 0xa502;
+    // XXX Overwrite the first two bytes of CTRLB which default to 0...
+    const NVMCTRL_CTRLA_ER_CMD32: u32 =
+        (Self::NVMCTRL_CTRLA_ER_CMD as u32) << 16;
+    const NVMCTRL_STATUS_READY: u8 = 1 << 2;
 
     pub fn new() -> Self {
         Atsaml10(())
@@ -158,11 +170,7 @@ impl Atsaml10 {
         Ok(probe)
     }
 
-    pub fn program(
-        &self,
-        probe: Probe,
-        _data: &Vec<DataChunk>,
-    ) -> Result<Probe> {
+    pub fn program(&self, probe: Probe, data: &FlashData) -> Result<Probe> {
         let mut interface =
             probe.try_into_arm_interface().map_err(|(_, e)| e)?;
 
@@ -210,7 +218,54 @@ impl Atsaml10 {
 
             log::warn!("Exit to park succeeded!");
 
-            // XXX Now need to program
+            let row_size: usize = Self::ROW_SIZE as usize;
+
+            // Actually do the flash.
+            for chunk in &data.chunks {
+                let data = &data.bin_data[chunk.segment_offset as usize..]
+                    [..chunk.segment_filesize as usize];
+
+                // Enable automatic writes.
+                memory.write_word_8((Self::NVMCTRL_CTRLC_ADDR).into(), 0)?;
+
+                let mut addr = chunk.address;
+
+                for row in data.chunks(row_size) {
+                    // Set the address.
+                    memory.write_word_32(
+                        (Self::NVMCTRL_ADDR_ADDR).into(),
+                        addr,
+                    )?;
+
+                    // Clear memory row.
+                    // XXX Would prefer to write this as a 16 bit addr...
+                    memory.write_word_32(
+                        (Self::NVMCTRL_CTRLA_ADDR).into(),
+                        Self::NVMCTRL_CTRLA_ER_CMD32,
+                    )?;
+
+                    // Wait for the NVM controller to be ready.
+                    loop {
+                        let status = memory
+                            .read_word_8((Self::NVMCTRL_STATUS_ADDR).into())?;
+                        if (status & Self::NVMCTRL_STATUS_READY) != 0 {
+                            break;
+                        }
+                    }
+
+                    if row.len() < row_size {
+                        let mut buf = Vec::with_capacity(row_size);
+                        buf.extend_from_slice(row);
+                        buf.resize(row_size, 0xff);
+
+                        memory.write_8(addr.into(), &buf)?;
+                    } else {
+                        memory.write_8(addr.into(), row)?;
+                    }
+
+                    addr += Atsaml10::ROW_SIZE;
+                }
+            }
         }
 
         let probe = interface.close();
