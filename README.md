@@ -42,7 +42,7 @@ Choose any of:
  - MIT: [LICENSE-MIT](LICENSE-MIT)
  - Blue Oak: [LICENSE-BLUE-OAK.md](LICENSE-BLUE-OAK.md)
 
-[xplained]: https://www.microchip.com/en-us/development-tool/DM320204)
+[xplained]: https://www.microchip.com/en-us/development-tool/DM320204
 [pico]: https://www.maximintegrated.com/en/products/microcontrollers/MAX32625PICO.html
 [probe-rs]: https://probe.rs/
 [cargo-flash]: https://github.com/probe-rs/cargo-flash
