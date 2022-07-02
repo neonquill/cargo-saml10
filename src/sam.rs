@@ -2,6 +2,7 @@ use crate::elf::FlashData;
 use anyhow::{anyhow, Result};
 use probe_rs::architecture::arm::{ap::MemoryAp, ApAddress, DpAddress, Pins};
 use probe_rs::{Memory, Probe};
+use std::io::Write;
 use std::thread;
 use std::time::Duration;
 
@@ -260,6 +261,7 @@ impl Atsaml10 {
 
                     addr += Atsaml10::ROW_SIZE;
                     print!(".");
+                    std::io::stdout().flush().ok();
                 }
             }
         }
@@ -351,9 +353,9 @@ impl Atsaml10 {
                     }
                     addr += Atsaml10::ROW_SIZE;
                     print!(".");
+                    std::io::stdout().flush().ok();
                 }
             }
-            println!("Verify succeeded!");
         }
 
         let probe = interface.close();
