@@ -6,12 +6,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 clap = { version = "3.2.7", features = ["derive"] }
-probe-rs = { version = "0.12.0", git = "https://github.com/probe-rs/probe-rs" }
-probe-rs-cli-util = { version = "0.12.0", git = "https://github.com/probe-rs/probe-rs" }
+probe-rs = { git = "https://github.com/neonquill/probe-rs", branch = "atsaml10" }
+probe-rs-cli-util = { git = "https://github.com/neonquill/probe-rs", branch = "atsaml10" }
 object = "0.29"
 log = "0.4"
 simplelog = "^0.12.0"
-
-[patch."https://github.com/probe-rs/probe-rs"]
-probe-rs = { path = "../../tools/probe-rs/probe-rs" }
-probe-rs-cli-util = { path = "../../tools/probe-rs/probe-rs-cli-util" }

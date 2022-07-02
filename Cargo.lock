@@ -127,9 +127,9 @@ dependencies = [
 
 [[package]]
 name = "cargo_metadata"
-version = "0.14.2"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4acbb09d9ee8e23699b9634375c72795d095bf268439da88562cf9b501f181fa"
+checksum = "3abb7553d5b9b8421c6de7cb02606ff15e0c6eea7d8eadd75ef013fd636bec36"
 dependencies = [
  "camino",
  "cargo-platform",
@@ -562,15 +562,6 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.28.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e42c982f2d955fac81dd7e1d0e1426a7d702acd9c98d19ab01083a6a0328c424"
-dependencies = [
- "memchr",
-]
-
-[[package]]
-name = "object"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21158b2c33aa6d4561f1c0a6ea283ca92bc54802a93b263e910746d679a7eb53"
@@ -606,6 +597,7 @@ checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 [[package]]
 name = "probe-rs"
 version = "0.12.0"
+source = "git+https://github.com/neonquill/probe-rs?branch=atsaml10#ada682c0c57d87edcb8411f831d1db3a6dd693b7"
 dependencies = [
  "anyhow",
  "base64",
@@ -620,7 +612,7 @@ dependencies = [
  "jep106",
  "log",
  "num-traits",
- "object 0.28.4",
+ "object 0.29.0",
  "once_cell",
  "probe-rs-target",
  "rusb",
@@ -630,12 +622,12 @@ dependencies = [
  "static_assertions",
  "svg",
  "thiserror",
- "thousands",
 ]
 
 [[package]]
 name = "probe-rs-cli-util"
 version = "0.12.0"
+source = "git+https://github.com/neonquill/probe-rs?branch=atsaml10#ada682c0c57d87edcb8411f831d1db3a6dd693b7"
 dependencies = [
  "anyhow",
  "byte-unit",
@@ -663,6 +655,7 @@ dependencies = [
 [[package]]
 name = "probe-rs-rtt"
 version = "0.12.0"
+source = "git+https://github.com/neonquill/probe-rs?branch=atsaml10#ada682c0c57d87edcb8411f831d1db3a6dd693b7"
 dependencies = [
  "log",
  "probe-rs",
@@ -674,6 +667,7 @@ dependencies = [
 [[package]]
 name = "probe-rs-target"
 version = "0.12.0"
+source = "git+https://github.com/neonquill/probe-rs?branch=atsaml10#ada682c0c57d87edcb8411f831d1db3a6dd693b7"
 dependencies = [
  "base64",
  "jep106",
@@ -935,12 +929,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "thousands"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bf63baf9f5039dadc247375c29eb13706706cfde997d0330d05aa63a77d8820"
 
 [[package]]
 name = "time"
