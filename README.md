@@ -33,7 +33,14 @@ integrate the logic into [probe-rs][probe-rs] so that it works with
    before using this tool.
  - [MPLAB IPE][ipe] will also let you program using the built in
    debugger as long as you convert the ELF files to hex files first.
- 
+
+## License
+
+Choose any of:
+
+ - Apache 2.0: [LICENSE-APACHE](LICENSE-APACHE)
+ - MIT: [LICENSE-MIT](LICENSE-MIT)
+ - Blue Oak: [LICENSE-BLUE-OAK.md](LICENSE-BLUE-OAK.md)
 
 [xplained]: https://www.microchip.com/en-us/development-tool/DM320204)
 [pico]: https://www.maximintegrated.com/en/products/microcontrollers/MAX32625PICO.html
