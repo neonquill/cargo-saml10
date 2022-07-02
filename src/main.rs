@@ -20,7 +20,14 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    // Remove extra arg coming from cargo, ala cargo-flash.
+    let raw_args = std::env::args();
+    let mut raw_args: Vec<_> = raw_args.collect();
+    if raw_args.get(1) == Some(&"saml10".to_string()) {
+        raw_args.remove(1);
+    }
+
+    let args = Args::parse_from(&raw_args);
 
     simplelog::TermLogger::init(
         args.log,
